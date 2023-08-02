@@ -1,0 +1,7 @@
+#.git
+*.md
+.cache
+target
+.gitignore
+.idea
+**target*
