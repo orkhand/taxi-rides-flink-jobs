@@ -12,7 +12,7 @@
 
     <properties>
         <taxi-rides-flink-jobs.version>1.0-SNAPSHOT</taxi-rides-flink-jobs.version>
-        <flink.version>1.15.0</flink.version>
+        <flink.version>1.17.1</flink.version>
         <slf4j.version>1.7.15</slf4j.version>
         <log4j.version>1.2.17</log4j.version>
         <java.version>11</java.version>
@@ -32,6 +32,7 @@
         <module>long-ride-alerts</module>
         <module>ride-cleansing</module>
         <module>rides-and-fares</module>
+        <module>autoscaler-metrics-decoder</module>
     </modules>
     <dependencies>
         <dependency>
