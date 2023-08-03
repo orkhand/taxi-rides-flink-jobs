@@ -52,7 +52,7 @@ public class LongRidesExercise {
     // the WatermarkStrategy specifies how to extract timestamps and generate watermarks
     WatermarkStrategy<TaxiRide> watermarkStrategy =
         WatermarkStrategy.<TaxiRide>forBoundedOutOfOrderness(Duration.ofSeconds(60))
-            .withTimestampAssigner((ride, streamRecordTimestamp) -> ride.getEventTimeMillis());
+            .withTimestampAssigner((ride, streamRecordTimestamp) -> ride.eventTime.toEpochMilli());
 
     // create the pipeline
     rides

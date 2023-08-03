@@ -57,13 +57,16 @@ public class RidesAndFaresSolution {
     DataStream<TaxiFare> fares = env.addSource(fareSource).keyBy(fare -> fare.rideId);
 
     // Create the pipeline.
-    rides
-        .connect(fares)
-        .flatMap(new EnrichmentFunction())
-        .uid("enrichment") // uid for this operator's state
-        .name("enrichment") // name for this operator in the web UI
-        .addSink(sink);
+    DataStream<RideAndFare> rideAndFareDataStream =
+        rides
+            .connect(fares)
+            .flatMap(new EnrichmentFunction())
+            .uid("enrichment") // uid for this operator's state
+            .name("enrichment") // name for this operator in the web UI
+        ;
+    rideAndFareDataStream.addSink(sink);
 
+    // rideAndFareDataStream.toSink(kafkaSink);
     // Execute the pipeline and return the result.
     return env.execute("Join Rides with Fares");
   }

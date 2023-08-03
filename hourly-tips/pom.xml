@@ -20,6 +20,11 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-connector-kafka</artifactId>
+            <version>1.17.1</version>
+        </dependency>
+        <dependency>
             <groupId>org.example</groupId>
             <artifactId>common</artifactId>
             <version>${taxi-rides-flink-jobs.version}</version>
@@ -50,7 +55,9 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.example.HourlyTipsTableSolution</mainClass> <!-- Replace com.package.Main with the fully qualified name of your main class -->
+                            <!-- Replace com.package.Main with the fully qualified name of your main class -->
+<!--                            <mainClass>org.example.HourlyTipsTableSolution</mainClass> -->
+                            <mainClass>org.example.FlinkKafkaConsumerJob</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
