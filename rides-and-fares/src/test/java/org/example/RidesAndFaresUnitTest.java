@@ -52,7 +52,7 @@ public class RidesAndFaresUnitTest extends RidesAndFaresTestBase {
 
     // Verify the result
     StreamRecord<RideAndFare> expected =
-        new StreamRecord<>(new RideAndFare(ride1, fare1), ride1.getEventTimeMillis());
+        new StreamRecord<>(new RideAndFare(ride1, fare1), ride1.eventTime.toEpochMilli());
     assertThat(harness.getOutput()).containsExactly(expected);
   }
 
@@ -69,7 +69,7 @@ public class RidesAndFaresUnitTest extends RidesAndFaresTestBase {
 
     // Verify the result
     StreamRecord<RideAndFare> expected =
-        new StreamRecord<>(new RideAndFare(ride1, fare1), ride1.getEventTimeMillis());
+        new StreamRecord<>(new RideAndFare(ride1, fare1), ride1.eventTime.toEpochMilli());
     assertThat(harness.getOutput()).containsExactly(expected);
   }
 

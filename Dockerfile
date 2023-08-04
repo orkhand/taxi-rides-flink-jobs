@@ -15,3 +15,4 @@ COPY --from=builder /src/hourly-tips/target/hourly-tips-1.0-SNAPSHOT.jar $FLINK_
 COPY --from=builder /src/long-ride-alerts/target/long-ride-alerts-1.0-SNAPSHOT.jar $FLINK_HOME/lib
 COPY --from=builder /src/ride-cleansing/target/ride-cleansing-1.0-SNAPSHOT.jar $FLINK_HOME/lib
 COPY --from=builder /src/rides-and-fares/target/rides-and-fares-1.0-SNAPSHOT.jar $FLINK_HOME/lib
+COPY --from=builder /src/data-generator/target/data-generator-1.0-SNAPSHOT.jar $FLINK_HOME/lib

@@ -34,7 +34,7 @@ public class TaxiRideGenerator implements SourceFunction<TaxiRide> {
         TaxiRide ride = new TaxiRide(id + i, true);
         startEvents.add(ride);
         // the start times may be in order, but let's not assume that
-        maxStartTime = Math.max(maxStartTime, ride.getEventTimeMillis());
+        maxStartTime = Math.max(maxStartTime, ride.eventTime.toEpochMilli());
       }
 
       // enqueue the corresponding END events
@@ -44,7 +44,7 @@ public class TaxiRideGenerator implements SourceFunction<TaxiRide> {
 
       // release the END events coming before the end of this new batch
       // (this allows a few END events to precede their matching START event)
-      while (endEventQ.peek().getEventTimeMillis() <= maxStartTime) {
+      while (endEventQ.peek().eventTime.toEpochMilli() <= maxStartTime) {
         TaxiRide ride = endEventQ.poll();
         ctx.collect(ride);
       }

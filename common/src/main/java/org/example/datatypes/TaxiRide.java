@@ -166,9 +166,9 @@ public class TaxiRide implements Comparable<TaxiRide>, Serializable {
   }
 
   /** Gets the ride's time stamp as a long in millis since the epoch. */
-  public long getEventTimeMillis() {
-    return eventTime.toEpochMilli();
-  }
+  //  public long getEventTimeMillis() {
+  //    return eventTime.toEpochMilli();
+  //  }
 
   /** Gets the distance from the ride location to the given one. */
   public double getEuclideanDistance(double longitude, double latitude) {
@@ -184,12 +184,12 @@ public class TaxiRide implements Comparable<TaxiRide>, Serializable {
   /** Creates a StreamRecord, using the ride and its timestamp. Used in tests. */
   @VisibleForTesting
   public StreamRecord<TaxiRide> asStreamRecord() {
-    return new StreamRecord<>(this, this.getEventTimeMillis());
+    return new StreamRecord<>(this, eventTime.toEpochMilli());
   }
 
   /** Creates a StreamRecord from this taxi ride, using its id and timestamp. Used in tests. */
   @VisibleForTesting
   public StreamRecord<Long> idAsStreamRecord() {
-    return new StreamRecord<>(this.rideId, this.getEventTimeMillis());
+    return new StreamRecord<>(this.rideId, eventTime.toEpochMilli());
   }
 }

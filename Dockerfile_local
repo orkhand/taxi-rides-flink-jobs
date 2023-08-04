@@ -7,3 +7,6 @@ COPY  hourly-tips/target/hourly-tips-1.0-SNAPSHOT.jar $FLINK_HOME/lib
 COPY  long-ride-alerts/target/long-ride-alerts-1.0-SNAPSHOT.jar $FLINK_HOME/lib
 COPY  ride-cleansing/target/ride-cleansing-1.0-SNAPSHOT.jar $FLINK_HOME/lib
 COPY  rides-and-fares/target/rides-and-fares-1.0-SNAPSHOT.jar $FLINK_HOME/lib
+COPY  data-generator/target/data-generator-1.0-SNAPSHOT.jar $FLINK_HOME/lib
+
+RUN echo 'classloader.resolve-order: parent-first' >> $FLINK_HOME/conf/flink-conf.yaml

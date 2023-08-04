@@ -8,14 +8,23 @@ import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.connector.base.DeliveryGuarantee;
+import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
+import org.apache.flink.connector.kafka.sink.KafkaSink;
+import org.apache.flink.connector.kafka.source.KafkaSource;
+import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
+import org.apache.flink.connector.kafka.source.reader.deserializer.KafkaRecordDeserializationSchema;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.streaming.api.functions.sink.PrintSinkFunction;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
+import org.apache.flink.streaming.connectors.kafka.partitioner.FlinkFixedPartitioner;
 import org.apache.flink.util.Collector;
+import org.example.constants.Constants;
 import org.example.datatypes.TaxiRide;
+import org.example.serde.TaxiRideDeSerializationSchema;
 import org.example.sources.TaxiRideGenerator;
 
 /**
@@ -45,27 +54,51 @@ public class LongRidesSolution {
    * @throws Exception which occurs during job execution.
    */
   public JobExecutionResult execute() throws Exception {
-
-    // set up streaming execution environment
     StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-    // start the data generator
-    DataStream<TaxiRide> rides = env.addSource(source);
+    KafkaSource<TaxiRide> kafkaSource =
+        KafkaSource.<TaxiRide>builder()
+            .setBootstrapServers(Constants.KAFKA_BROKER_ENDPOINT)
+            .setTopics(Constants.TAXI_RIDE_KAFKA_TOPIC)
+            .setGroupId(Constants.TAXI_RIDE_KAFKA_TOPIC + "-consumer-group")
+            .setStartingOffsets(OffsetsInitializer.earliest()) // latest
+            .setDeserializer(
+                KafkaRecordDeserializationSchema.valueOnly(new TaxiRideDeSerializationSchema()))
+            .build();
 
-    // the WatermarkStrategy specifies how to extract timestamps and generate watermarks
-    WatermarkStrategy<TaxiRide> watermarkStrategy =
-        WatermarkStrategy.<TaxiRide>forBoundedOutOfOrderness(Duration.ofSeconds(60))
-            .withTimestampAssigner((ride, streamRecordTimestamp) -> ride.getEventTimeMillis());
+    DataStream<TaxiRide> rides =
+        env.fromSource(
+            kafkaSource,
+            WatermarkStrategy.<TaxiRide>forBoundedOutOfOrderness(Duration.ofSeconds(60))
+                .withTimestampAssigner(
+                    (ride, streamRecordTimestamp) -> ride.eventTime.toEpochMilli()),
+            Constants.TAXI_RIDE_KAFKA_TOPIC + "-Kafka-Source");
 
     // create the pipeline
-    rides
-        .assignTimestampsAndWatermarks(watermarkStrategy)
-        .keyBy(ride -> ride.rideId)
-        .process(new AlertFunction())
-        .addSink(sink);
+    DataStream<Long> alertRideIdStream =
+        rides.keyBy(ride -> ride.rideId).process(new AlertFunction());
 
-    // execute the pipeline and return the result
-    return env.execute("Long Taxi Rides");
+    alertRideIdStream.addSink(sink);
+
+    KafkaSink<Long> kafkaSink =
+        KafkaSink.<Long>builder()
+            .setBootstrapServers(Constants.KAFKA_BROKER_ENDPOINT)
+            .setRecordSerializer(
+                KafkaRecordSerializationSchema.builder()
+                    .setTopic(Constants.ALERT_RIDES_KAFKA_TOPIC)
+                    .setValueSerializationSchema(
+                        new TaxiRideDeSerializationSchema
+                            .LongSerializationSchema()) // Change this to your serializer
+                    .setPartitioner(new FlinkFixedPartitioner())
+                    .build())
+            .setDeliveryGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
+            .build();
+
+    alertRideIdStream.sinkTo(kafkaSink);
+    alertRideIdStream.addSink(new PrintSinkFunction<>());
+
+    // execute the transformation pipeline and return the result
+    return env.execute("Alert Rides");
   }
 
   /**

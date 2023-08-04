@@ -33,6 +33,7 @@
         <module>ride-cleansing</module>
         <module>rides-and-fares</module>
         <module>autoscaler-metrics-decoder</module>
+        <module>data-generator</module>
     </modules>
     <dependencies>
         <dependency>
@@ -99,6 +100,11 @@
             <version>${flink.version}</version>
             <scope>provided</scope>
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.fasterxml.jackson.datatype</groupId>-->
+<!--            <artifactId>jackson-datatype-jsr310</artifactId>-->
+<!--            <version>2.12.5</version> &lt;!&ndash; Use the appropriate version &ndash;&gt;-->
+<!--        </dependency>-->
         <!-- Tests dependencies -->
         <dependency>
             <groupId>org.apache.flink</groupId>

@@ -111,13 +111,13 @@ public class TaxiFare implements Serializable {
   }
 
   /** Gets the fare's start time. */
-  public long getEventTimeMillis() {
-    return startTime.toEpochMilli();
-  }
+  //  public long getEventTimeMillis() {
+  //    return startTime.toEpochMilli();
+  //  }
 
   /** Creates a StreamRecord, using the fare and its timestamp. Used in tests. */
   @VisibleForTesting
   public StreamRecord<TaxiFare> asStreamRecord() {
-    return new StreamRecord<>(this, this.getEventTimeMillis());
+    return new StreamRecord<>(this, startTime.toEpochMilli());
   }
 }
