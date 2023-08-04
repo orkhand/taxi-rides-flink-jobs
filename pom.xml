@@ -33,6 +33,7 @@
         <module>ride-cleansing</module>
         <module>rides-and-fares</module>
         <module>autoscaler-metrics-decoder</module>
+        <module>data-generator</module>
     </modules>
     <dependencies>
         <dependency>

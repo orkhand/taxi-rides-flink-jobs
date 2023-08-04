@@ -21,6 +21,7 @@ import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.streaming.connectors.kafka.partitioner.FlinkFixedPartitioner;
 import org.apache.flink.util.Collector;
+import org.example.constants.Constants;
 import org.example.datatypes.TaxiFare;
 import org.example.serde.TaxiFareDeSerializationSchema;
 import org.example.serde.Tuple3DeSerializer;
@@ -33,8 +34,6 @@ import org.example.sources.TaxiFareGenerator;
  * by hour, and then from that stream, find the highest tip total in each hour.
  */
 public class HourlyTipsSolution {
-
-  //  private final SourceFunction<TaxiFare> source;
   private final SinkFunction<Tuple3<Long, Long, Float>> sink;
 
   /** Creates a job using the source and sink provided. */

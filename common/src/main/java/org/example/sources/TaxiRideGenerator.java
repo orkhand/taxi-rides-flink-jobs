@@ -15,7 +15,7 @@ import org.example.datatypes.TaxiRide;
  */
 public class TaxiRideGenerator implements SourceFunction<TaxiRide> {
 
-  public static final int SLEEP_MILLIS_PER_EVENT = 3;
+  public static final int SLEEP_MILLIS_PER_EVENT = 10;
   private static final int BATCH_SIZE = 5;
   private volatile boolean running = true;
 

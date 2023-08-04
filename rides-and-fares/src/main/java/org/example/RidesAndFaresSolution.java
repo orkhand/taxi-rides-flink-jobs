@@ -1,20 +1,33 @@
 /* (C)2023 */
 package org.example;
 
+import java.time.Duration;
 import org.apache.flink.api.common.JobExecutionResult;
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.connector.base.DeliveryGuarantee;
+import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
+import org.apache.flink.connector.kafka.sink.KafkaSink;
+import org.apache.flink.connector.kafka.source.KafkaSource;
+import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
+import org.apache.flink.connector.kafka.source.reader.deserializer.KafkaRecordDeserializationSchema;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.co.RichCoFlatMapFunction;
 import org.apache.flink.streaming.api.functions.sink.PrintSinkFunction;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
+import org.apache.flink.streaming.connectors.kafka.partitioner.FlinkFixedPartitioner;
 import org.apache.flink.util.Collector;
+import org.example.constants.Constants;
 import org.example.datatypes.RideAndFare;
 import org.example.datatypes.TaxiFare;
 import org.example.datatypes.TaxiRide;
+import org.example.serde.RideAndFareSerializationSchema;
+import org.example.serde.TaxiFareDeSerializationSchema;
+import org.example.serde.TaxiRideDeSerializationSchema;
 import org.example.sources.TaxiFareGenerator;
 import org.example.sources.TaxiRideGenerator;
 
@@ -47,35 +60,72 @@ public class RidesAndFaresSolution {
    * @param env The {StreamExecutionEnvironment}.
    * @return {JobExecutionResult}
    */
-  public JobExecutionResult execute(StreamExecutionEnvironment env) throws Exception {
-
-    // A stream of taxi ride START events, keyed by rideId.
-    DataStream<TaxiRide> rides =
-        env.addSource(rideSource).filter(ride -> ride.isStart).keyBy(ride -> ride.rideId);
-
-    // A stream of taxi fare events, also keyed by rideId.
-    DataStream<TaxiFare> fares = env.addSource(fareSource).keyBy(fare -> fare.rideId);
-
-    // Create the pipeline.
-    DataStream<RideAndFare> rideAndFareDataStream =
-        rides
-            .connect(fares)
-            .flatMap(new EnrichmentFunction())
-            .uid("enrichment") // uid for this operator's state
-            .name("enrichment") // name for this operator in the web UI
-        ;
-    rideAndFareDataStream.addSink(sink);
-
-    // rideAndFareDataStream.toSink(kafkaSink);
-    // Execute the pipeline and return the result.
-    return env.execute("Join Rides with Fares");
-  }
-
   /** Creates and executes the pipeline using the default StreamExecutionEnvironment. */
   public JobExecutionResult execute() throws Exception {
     StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
     return execute(env);
+  }
+
+  public JobExecutionResult execute(StreamExecutionEnvironment env) throws Exception {
+    KafkaSource<TaxiRide> rideKafkaSource =
+        KafkaSource.<TaxiRide>builder()
+            .setBootstrapServers(Constants.KAFKA_BROKER_ENDPOINT)
+            .setTopics(Constants.TAXI_RIDE_KAFKA_TOPIC)
+            .setGroupId(Constants.TAXI_RIDE_KAFKA_TOPIC + "-consumer-group")
+            .setStartingOffsets(OffsetsInitializer.earliest())
+            .setDeserializer(
+                KafkaRecordDeserializationSchema.valueOnly(new TaxiRideDeSerializationSchema()))
+            .build();
+
+    KafkaSource<TaxiFare> fareKafkaSource =
+        KafkaSource.<TaxiFare>builder()
+            .setBootstrapServers(Constants.KAFKA_BROKER_ENDPOINT)
+            .setTopics(Constants.TAXI_FARE_KAFKA_TOPIC)
+            .setGroupId(Constants.TAXI_FARE_KAFKA_TOPIC + "-consumer-group")
+            .setStartingOffsets(OffsetsInitializer.earliest())
+            .setDeserializer(
+                KafkaRecordDeserializationSchema.valueOnly(new TaxiFareDeSerializationSchema()))
+            .build();
+
+    DataStream<TaxiRide> rides =
+        env.fromSource(
+                rideKafkaSource,
+                WatermarkStrategy.<TaxiRide>forBoundedOutOfOrderness(Duration.ofSeconds(60))
+                    .withTimestampAssigner(
+                        (ride, streamRecordTimestamp) -> ride.eventTime.toEpochMilli()),
+                Constants.TAXI_RIDE_KAFKA_TOPIC + "-Kafka-Source")
+            .keyBy(ride -> ride.rideId);
+
+    DataStream<TaxiFare> fares =
+        env.fromSource(
+                fareKafkaSource,
+                WatermarkStrategy.<TaxiFare>forBoundedOutOfOrderness(Duration.ofSeconds(60))
+                    .withTimestampAssigner(
+                        (fare, streamRecordTimestamp) -> fare.startTime.toEpochMilli()),
+                Constants.TAXI_FARE_KAFKA_TOPIC + "-Kafka-Source")
+            .keyBy(fare -> fare.rideId);
+
+    DataStream<RideAndFare> rideAndFareDataStream =
+        rides.connect(fares).flatMap(new EnrichmentFunction()).uid("enrichment").name("enrichment");
+    rideAndFareDataStream.addSink(sink);
+
+    KafkaSink<RideAndFare> kafkaSink =
+        KafkaSink.<RideAndFare>builder()
+            .setBootstrapServers(Constants.KAFKA_BROKER_ENDPOINT)
+            .setRecordSerializer(
+                KafkaRecordSerializationSchema.builder()
+                    .setTopic(Constants.RIDE_AND_FARE_KAFKA_TOPIC)
+                    .setValueSerializationSchema(new RideAndFareSerializationSchema())
+                    .setPartitioner(new FlinkFixedPartitioner())
+                    .build())
+            .setDeliveryGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
+            .build();
+
+    rideAndFareDataStream.sinkTo(kafkaSink);
+    rideAndFareDataStream.addSink(new PrintSinkFunction<>());
+
+    return env.execute("Join Rides with Fares");
   }
 
   /**

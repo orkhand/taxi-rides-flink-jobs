@@ -52,8 +52,8 @@ BUILDKIT_PROGRESS=plain docker build --build-arg FLINK_VERSION=1.17.1 -f Dockerf
 BUILDKIT_PROGRESS=plain docker buildx build --platform linux/amd64 \
                               --build-arg FLINK_VERSION=1.17.1 \
                               -f Dockerfile_local . \
-                              -t 432504884617.dkr.ecr.us-east-1.amazonaws.com/flink-jobs:aug2-v14 \
-                              && docker push 432504884617.dkr.ecr.us-east-1.amazonaws.com/flink-jobs:aug2-v14
+                              -t 432504884617.dkr.ecr.us-east-1.amazonaws.com/flink-jobs:aug3-v5 \
+                              && docker push 432504884617.dkr.ecr.us-east-1.amazonaws.com/flink-jobs:aug3-v5
 
 # Push docker image to AWS ECR (Elastic Container Repository)  
 docker push <ecr-repo-uri>
