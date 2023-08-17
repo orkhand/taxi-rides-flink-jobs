@@ -15,7 +15,7 @@ import org.example.datatypes.TaxiRide;
  */
 public class TaxiRideGenerator implements SourceFunction<TaxiRide> {
 
-  public static final int SLEEP_MILLIS_PER_EVENT = 10;
+  public static final int SLEEP_MILLIS_PER_EVENT = 1;
   private static final int BATCH_SIZE = 5;
   private volatile boolean running = true;
 
@@ -57,7 +57,7 @@ public class TaxiRideGenerator implements SourceFunction<TaxiRide> {
       id += BATCH_SIZE;
 
       // don't go too fast
-      Thread.sleep(BATCH_SIZE * SLEEP_MILLIS_PER_EVENT);
+      //      Thread.sleep(BATCH_SIZE * SLEEP_MILLIS_PER_EVENT);
     }
   }
 

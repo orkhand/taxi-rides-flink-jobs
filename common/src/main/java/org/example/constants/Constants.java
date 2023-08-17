@@ -3,7 +3,7 @@ package org.example.constants;
 
 public class Constants {
   /** This is IP address of Network.Services.cp-helm-charts-<any-number></>-cp-kafka */
-  public static final String KAFKA_BROKER_ENDPOINT = "172.20.100.205:9092";
+  public static final String KAFKA_BROKER_ENDPOINT = "my-confluent-cp-kafka-headless:9092";
 
   public static final String TAXI_FARE_KAFKA_TOPIC = "taxi-fare";
 

@@ -44,7 +44,11 @@ docker push 432504884617.dkr.ecr.us-east-1.amazonaws.com/flink-jobs:aug2-v2
 mvn spotless:apply clean package -DskipTests
 
 # Build docker image
-BUILDKIT_PROGRESS=plain docker build --build-arg FLINK_VERSION=1.17.1 -f Dockerfile_local .
+BUILDKIT_PROGRESS=plain docker build \
+                              --build-arg FLINK_VERSION=1.17.1 \
+                              -f Dockerfile_local . \
+                              -t 432504884617.dkr.ecr.us-east-1.amazonaws.com/flink-jobs:aug9-v3 \
+                              && docker push 432504884617.dkr.ecr.us-east-1.amazonaws.com/flink-jobs:aug9-v3
 
 # If building in Apple Silicon M1/M2 laptop
 # Build docker image
@@ -52,8 +56,8 @@ BUILDKIT_PROGRESS=plain docker build --build-arg FLINK_VERSION=1.17.1 -f Dockerf
 BUILDKIT_PROGRESS=plain docker buildx build --platform linux/amd64 \
                               --build-arg FLINK_VERSION=1.17.1 \
                               -f Dockerfile_local . \
-                              -t 432504884617.dkr.ecr.us-east-1.amazonaws.com/flink-jobs:aug3-v5 \
-                              && docker push 432504884617.dkr.ecr.us-east-1.amazonaws.com/flink-jobs:aug3-v5
+                              -t 432504884617.dkr.ecr.us-east-1.amazonaws.com/flink-jobs:aug9-v3 \
+                              && docker push 432504884617.dkr.ecr.us-east-1.amazonaws.com/flink-jobs:aug9-v3
 
 # Push docker image to AWS ECR (Elastic Container Repository)  
 docker push <ecr-repo-uri>
