@@ -57,7 +57,7 @@ public class TaxiRideGenerator implements SourceFunction<TaxiRide> {
       id += BATCH_SIZE;
 
       // don't go too fast
-      //      Thread.sleep(BATCH_SIZE * SLEEP_MILLIS_PER_EVENT);
+      Thread.sleep(BATCH_SIZE * SLEEP_MILLIS_PER_EVENT);
     }
   }
 

@@ -41,7 +41,7 @@ public class TaxiFareGenerator implements SourceFunction<TaxiFare> {
       ctx.collect(fare);
 
       // match our event production rate to that of the TaxiRideGenerator
-      //      Thread.sleep(TaxiRideGenerator.SLEEP_MILLIS_PER_EVENT);
+      Thread.sleep(TaxiRideGenerator.SLEEP_MILLIS_PER_EVENT);
     }
   }
 

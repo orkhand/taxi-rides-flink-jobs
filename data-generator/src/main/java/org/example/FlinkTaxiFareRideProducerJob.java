@@ -22,7 +22,8 @@ public class FlinkTaxiFareRideProducerJob {
 
     DataStream<TaxiRide> taxiRideDataStream = env.addSource(new TaxiRideGenerator());
     DataStream<TaxiFare> taxiFareDataStream = env.addSource(new TaxiFareGenerator());
-
+    System.out.println(
+        "===> org.apache.kafka.common.security.plain.PlainLoginModule required username=\"user1\" password=\"ESsxvBzNXp\";");
     KafkaSink<TaxiRide> rideSink =
         KafkaSink.<TaxiRide>builder()
             .setBootstrapServers(Constants.KAFKA_BROKER_ENDPOINT)

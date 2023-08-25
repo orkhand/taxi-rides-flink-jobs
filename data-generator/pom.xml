@@ -42,4 +42,21 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins> <!-- Add the plugin section here -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.5</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>org.example.FlinkTaxiFareRideProducerJob</mainClass> <!-- Replace com.package.Main with the fully qualified name of your main class -->
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>
